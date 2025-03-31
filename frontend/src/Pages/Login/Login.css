@@ -1,0 +1,121 @@
+.main {
+  margin-top: 10vh;
+  margin-left: 10vh;
+  color: white;
+  font-family: sans-serif;
+  display: flex;
+  gap: 10rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.main::-webkit-scrollbar {
+  width: 0 !important;
+}
+
+.container {
+  min-height: auto;
+  width: 380px;
+  background: linear-gradient(90deg, #3E3B3A, #A94444);
+  text-align: center;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 5px 8px 20px rgba(0, 0, 0, 0.9);
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.container:hover {
+  transform: scale(1.05);
+  box-shadow: 7px 10px 25px rgba(0, 0, 0, 1);
+}
+
+.para1 {
+  font-size: large;
+  margin-top: 10px;
+}
+
+.logo {
+  padding: 15px;
+}
+
+.para {
+  margin-top: 20px;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+.form {
+  margin-top: 40px;
+}
+
+.input-0 {
+  border: 0;
+  outline: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid gray;
+  width: 70%;
+  padding-block: 17px;
+  border-radius: 15px;
+  padding-left: 1rem;
+  color: white;
+  transition: all 0.3s;
+}
+
+.input-0::placeholder {
+  font-size: 16px;
+  padding-left: 20px;
+}
+
+.input-0:focus {
+  border-color: #FF4C4C;
+  box-shadow: 0 0 8px rgba(255, 76, 76, 0.7);
+}
+
+.input-2 {
+  margin-top: 20px;
+}
+
+.btns {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 80px;
+  margin-bottom: 1rem;
+}
+
+.btns-1 {
+  background: linear-gradient(90deg, #A94444, #3E3B3A);
+  padding: 12px;
+  width: 200px;
+  border-radius: 8px;
+  color: #FFF;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  border: none;
+  letter-spacing: 1px;
+  font-size: 18px;
+  box-shadow: 0 4px 10px rgba(255, 76, 76, 0.5);
+}
+
+.btns-1:hover {
+  background: linear-gradient(90deg, #FF4C4C, #3E3B3A);
+  transform: scale(1.1);
+  box-shadow: 0px 6px 15px rgba(255, 76, 76, 0.8);
+}
+
+.radio-btn {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.signup-link {
+  margin-top: 20px;
+  font-size: small;
+}
+
+.signup-link p {
+  color: #fff;
+}

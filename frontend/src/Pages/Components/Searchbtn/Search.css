@@ -1,0 +1,68 @@
+/* === search btn === */
+.search{
+    display: flex;
+    padding-top: 4rem;
+    width: 450px;
+    position: relative;
+}
+.search img{
+    position: absolute;
+    margin: 5px;
+}
+.search input{
+    width: 450px;
+    height: 3rem;
+    border: none;
+    border-radius: 3px;
+    padding-left: 50px;
+    background-color: #fff;
+    color:#042439;
+    font-weight: 600;
+}
+
+.search button{
+    position: absolute;
+    right: 0;
+    border-radius: 2px;
+    margin: 5.5px 5.5px;
+    height: 35px;
+}
+
+/* Already Enrolled Button */
+.bg-green-900 {
+    background-color: #047857;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 128, 0, 0.3);
+    opacity: 0.8;
+    transition: all 0.3s ease;
+  }
+  
+  .bg-green-900:hover {
+    opacity: 1;
+    cursor: not-allowed;
+  }
+  
+  /* Enroll Now Button */
+  .bg-blue-900 {
+    background-color: #1e40af;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 255, 0.3);
+    transition: all 0.3s ease;
+  }
+  
+  .bg-blue-900:hover {
+    background-color: #1e3a8a;
+    transform: scale(1.05);
+    box-shadow: 0 6px 10px rgba(0, 0, 255, 0.4);
+  }
+  

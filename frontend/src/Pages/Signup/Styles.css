@@ -1,0 +1,128 @@
+.section {
+    display: flex;
+    align-items: center;
+    margin-left: 200px;
+}
+
+.article {
+    min-height: auto;
+    width: 23rem;
+    color: #FFF;
+    font-family: sans-serif;
+    background: linear-gradient(90deg, #3E3B3A, #A94444);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 4px 6px 15px rgba(0, 0, 0, 0.8);
+    margin: auto;
+    margin-top: 50px;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.article:hover {
+    transform: scale(1.05);
+    box-shadow: 6px 8px 20px rgba(0, 0, 0, 1);
+}
+
+.logo-1 {
+    margin-left: 30px;
+}
+
+.header {
+    text-align: center;
+    margin-top: 5px;
+}
+
+.head {
+    font-size: 24px;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.Sub-head {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.inpts {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.input-x {
+    border: 0;
+    outline: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid gray;
+    width: 70%;
+    padding-block: 17px;
+    border-radius: 15px;
+    padding-left: 1rem;
+    color: white;
+    transition: all 0.3s;
+    margin-bottom: 7px;
+  }
+  
+
+.input-x::placeholder {
+    font-size: 16px;
+    padding-left: 10px;
+}
+
+.input-x:focus {
+    border-color: #FF4C4C;
+    box-shadow: 0 0 8px rgba(255, 76, 76, 0.7);
+}
+
+.rad-btns {
+    margin: 1.2rem;
+    margin-left: 5rem;
+}
+
+.signupage {
+    margin-top: 15px;
+    text-align: center;
+    background: linear-gradient(90deg, #3E3B3A, #A94444);
+}
+
+.signupage span {
+    font-size: small;
+}
+
+.btn-4 {
+    color: #FFF;
+    background: linear-gradient(90deg, #A94444, #3E3B3A);
+    border: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    width: 60%;
+    margin: 20px auto;
+    display: block;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-4:hover {
+    background: linear-gradient(90deg, #FF4C4C, #3E3B3A);
+    transform: scale(1.08);
+    box-shadow: 0px 4px 12px rgba(255, 76, 76, 0.6);
+}
+
+.btn {
+    margin-bottom: 1rem;
+}
+
+.imgs {
+    width: 80%;
+    margin-top: 40px;
+}
+
+.right-part {
+    margin-left: 90px;
+}
+
+.error-message {
+    color: #d41717;
+    font-size: 0.9rem;
+}
