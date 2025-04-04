@@ -45,13 +45,14 @@ const Course = () => {
     const fetchCourseRequests = async () => {
       try {
         const response = await axios.get(`/api/admin/${data}/approve/course`);
-        console.log("dtat",response.data.data);
-        setCourseReq(response.data.data);
+        console.log(response)
+        if (response.data && response.data.data) {
+          setCourseReq(response.data.data);
+        }
       } catch (error) {
         console.error('Error fetching course requests:', error);
       }
     };
-
     fetchCourseRequests();
   }, [data]);
 

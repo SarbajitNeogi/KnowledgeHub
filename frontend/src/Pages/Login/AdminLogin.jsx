@@ -19,65 +19,53 @@ export default function AdminLogin() {
 
     // Client-side validation
     const newErrors = {};
-
-    if (!User.trim()) {
-        newErrors.User = "User Name is required";
-    }
-  
-    if (!Password.trim()) {
-      newErrors.password = "Password is required";
-    }
+    if (!User.trim()) newErrors.User = "User Name is required";
+    if (!Password.trim()) newErrors.password = "Password is required";
 
     if (Object.keys(newErrors).length > 0) {
-      // Update the errors state and prevent form submission
-      setErrors(newErrors);
-      return;
+        setErrors(newErrors);
+        return;
     }
 
     // Prepare data object to send to the backend
-    const data = {
-      username: User,
-      password: Password,
-    };
+    const data = { username: User, password: Password };
 
     try {
-      // Send data to backend
-      const response = await fetch(`/api/admin/login`, {
-        method: 'POST',
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+        // Send data to backend
+        const response = await fetch(`/api/admin/login`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
 
-      const responesData = await response.json()
-      setErr(responesData.message);
-      const userid = responesData.data.admin._id
- 
-      // Handle response
-      if (response.ok) {
-          console.log(response); 
-        
-       navigate(`/admin/${userid}`)
-      } else if (response.status === 401) {
-        // Incorrect password
-        setErrors({ password: responesData.message || "Incorrect password" });
-      } else if (response.status === 403) {
-        // Account locked, disabled, or other authentication issues
+        const responseData = await response.json();
+        setErr(responseData.message);
 
-        setErrors({ general: responesData.message || "Login failed" });
-      } else if (response.status === 400) {
-        setErrors({ general: responesData.message || "Admin does not exist" });
-      } else {
-        // Other unexpected errors
-        setErrors({ general: "An unexpected error occurred" });
-      }
+        // Handle response
+        if (response.ok) {
+            console.log("Login Success:", responseData);
+            localStorage.setItem("AccessToken", responseData.data.AccessToken);
+
+            // ✅ Store the token in localStorage
+            if (responseData.data && responseData.data.AccessToken) {
+                localStorage.setItem("AccessToken", responseData.data.AccessToken);
+            } else {
+                console.warn("AccessToken not found in response!");
+            }
+
+            // ✅ Redirect to the admin page
+            navigate(`/admin/${responseData.data.admin._id}`);
+        } else {
+            setErrors({ general: responseData.message || "Login failed" });
+        }
     } catch (error) {
-   
-      setErrors(error.message);
+        setErrors({ general: error.message || "An unexpected error occurred" });
     }
-  };
+};
+
 
   return (
     <>

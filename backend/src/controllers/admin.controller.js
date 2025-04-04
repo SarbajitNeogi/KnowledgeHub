@@ -7,97 +7,111 @@ import { Teacher, Teacherdocs } from "../models/teacher.model.js";
 import { contact } from "../models/contact.model.js";
 import { course } from "../models/course.model.js";
 import {Sendmail} from "../utils/Nodemailer.js"
+import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-
+import jwt from "jsonwebtoken";
 
 const adminSignUp = asyncHandler(async (req, res) => {
     const { username, password } = req.body;
 
-    // Check for empty fields
-    if ([username, password].some((field) => field?.trim() === "")) {
+    // Validate input
+    if (!username?.trim() || !password?.trim()) {
         throw new ApiError(400, "All fields are required");
     }
 
+    // Normalize username to lowercase before saving
+    const normalizedUsername = username.trim().toLowerCase();
+
     // Check if admin already exists
-    const existedAdmin = await admin.findOne({ username });
+    const existedAdmin = await admin.findOne({ username: normalizedUsername });
     if (existedAdmin) {
         throw new ApiError(400, "Admin already exists");
     }
 
-    // Hash the password
+    // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new admin
-    const newAdmin = await admin.create({
-        username,
+    // Create new admin with hashed password
+    const newAdmin = new admin({
+        username: normalizedUsername,
         password: hashedPassword,
     });
 
-    if (!newAdmin) {
-        throw new ApiError(500, "Failed to add admin");
-    }
+    await newAdmin.save();
 
-    return res
-        .status(201)
-        .json(new ApiResponse(201, {}, "Admin added successfully"));
+    return res.status(201).json(new ApiResponse(201, {}, "Admin added successfully"));
 });
 
-const generateAccessAndRefreshTokens = async (admindID) =>{ 
+// 🟢 Token Generation Function
+const generateAccessAndRefreshTokens = async (adminID) => { 
     try {
-        
-        const Admin = await admin.findById(admindID)
-        
-        const Accesstoken = Admin.generateAccessToken()
-        const Refreshtoken = Admin.generateRefreshToken()
+        const Admin = await admin.findById(adminID);
+        if (!Admin) {
+            throw new ApiError(404, "Admin not found");
+        }
 
-        Admin.Refreshtoken = Refreshtoken
-        await Admin.save({validateBeforeSave:false})
+        // Generate access and refresh tokens
+        const AccessToken = Admin.generateAccessToken();
+        const RefreshToken = Admin.generateRefreshToken();
 
-        return{Accesstoken, Refreshtoken}
+        // Store refresh token in DB
+        Admin.RefreshToken = RefreshToken;
+        await Admin.save({ validateBeforeSave: false });
 
+        return { AccessToken, RefreshToken };
     } catch (error) {
-        throw new ApiError(500, "Something went wrong while generating referesh and access token")
+        console.error("Error generating tokens:", error);
+        throw new ApiError(500, "Something went wrong while generating tokens");
     }
-}
+};
 
-const adminLogin = asyncHandler(async(req,res)=>{
 
-    const {username, password} = req.body
+// 🟢 Admin Login Function
+const adminLogin = asyncHandler(async (req, res) => {
+    const { username, password } = req.body;
 
-    if([username, password].some((field) => field?.trim() === "")) {
+    if ([username, password].some((field) => field?.trim() === "")) {
         throw new ApiError(400, "All fields are required");
     }
 
-    const loggedAdmin = await admin.findOne({username})
+    // Normalize username to lowercase
+    const normalizedUsername = username.trim().toLowerCase();
 
-    if(!loggedAdmin){
-        throw new ApiError(400, "admin does not exist")
+    // Find the admin by username
+    const loggedAdmin = await admin.findOne({ username: normalizedUsername });
+
+    if (!loggedAdmin) {
+        throw new ApiError(400, "Admin does not exist");
     }
 
-    const passwordCheck = await loggedAdmin.isPasswordCorrect(password)
+    console.log("Admin Found:", loggedAdmin);
 
-    if(!passwordCheck){
-        throw new ApiError(400, "Password is incorrect")
+    // Compare the password with the hashed password stored in DB
+    const passwordCheck = await loggedAdmin.isPasswordCorrect(password);
+
+    console.log("Password Check Result:", passwordCheck);
+
+    if (!passwordCheck) {
+        throw new ApiError(400, "Password is incorrect");
     }
 
-    const temp_admin = loggedAdmin._id
+    // Generate tokens for the logged-in admin
+    const { AccessToken, RefreshToken } = await generateAccessAndRefreshTokens(loggedAdmin._id);
 
-    const {Accesstoken, Refreshtoken} =  await generateAccessAndRefreshTokens(temp_admin)
+    // Exclude sensitive data (like password) before sending back admin details
+    const loggedAdminDetails = await admin
+        .findById(loggedAdmin._id)
+        .select("-password -RefreshToken");
 
-    const loggedadmin = await admin.findById(temp_admin).select("-password -Refreshtoken")
-
-    const options = {
-        httpOnly:true,
-        secure:true,
-    }
-
-    return res 
-    .status(200)
-    .cookie("Accesstoken", Accesstoken, options)
-    .cookie("Refreshtoken", Refreshtoken, options)
-    .json(new ApiResponse(200,{admin:loggedadmin}, "logged in successfully"))
-})
-
+    // Send tokens as cookies and return the admin data
+    return res.status(200)
+    .cookie("AccessToken", AccessToken, { httpOnly: true, secure: true })
+    .cookie("RefreshToken", RefreshToken, { httpOnly: true, secure: true })
+    .json(new ApiResponse(200, { 
+        admin: loggedAdminDetails, 
+        AccessToken, // ✅ Return token in response for debugging
+    }, "Logged in successfully"));
+});
 const adminLogout = asyncHandler(async(req,res)=>{
 
     await admin.findByIdAndUpdate(
@@ -123,40 +137,47 @@ const adminLogout = asyncHandler(async(req,res)=>{
     .json(new ApiResponse(200, {}, "admin logged out"))
 })
 
-const forApproval = asyncHandler(async(req,res)=>{
+const forApproval = asyncHandler(async (req, res) => {
+    const adminID = req.params.adminID;
 
-    const adminID = req.params.adminID
-
-    if(!adminID){
-        throw new ApiError(400, "not authorized")
+    // Validate adminID
+    if (!mongoose.Types.ObjectId.isValid(adminID)) {
+        throw new ApiError(400, "Invalid Admin ID");
     }
 
-    const loggedAdmin = await admin.findById(adminID)
+    try {
+        // Check if the admin exists
+        const loggedAdmin = await admin.findById(adminID);
+        if (!loggedAdmin) {
+            throw new ApiError(404, "Admin not found");
+        }
 
-    if(!loggedAdmin){
-        throw new ApiError(400, "admin not found")
+        // Fetch pending approvals
+        const [studentsforApproval, teachersforApproval] = await Promise.all([
+            student.find({ Isverified: true, Isapproved: "pending" }),
+            Teacher.find({ Isverified: true, Isapproved: "pending" }),
+        ]);
+
+        console.log("Students for approval:", studentsforApproval.length);
+        console.log("Teachers for approval:", teachersforApproval.length);
+
+        // Check if there's any pending approval
+        if (studentsforApproval.length === 0 && teachersforApproval.length === 0) {
+            return res.status(200).json(new ApiResponse(200, {}, "No pending student or teacher requests"));
+        }
+
+        // Return pending approvals
+        return res.status(200).json(new ApiResponse(200, {
+            admin: loggedAdmin,
+            studentsforApproval,
+            teachersforApproval
+        }, "Fetched successfully"));
+
+    } catch (error) {
+        console.error("Error fetching pending approvals:", error);
+        throw new ApiError(500, "Internal Server Error");
     }
-
-
-    const studentsforApproval = await student.find({
-        Isverified: true
-    })
-
-    const teachersforApproval = await Teacher.find({
-        Isverified: true
-    })
-
-    if(!studentsforApproval && !teachersforApproval){
-        return res
-        .status(200)
-        .json(new ApiResponse(200, loggedAdmin, "No pending student or teacher"))
-    }
-
-    return res
-    .status(200)
-    .json(new ApiResponse(200,{admin:loggedAdmin, studentsforApproval
-    , teachersforApproval}, "fetched successfully"))
-})
+});
 
 const approveStudent = asyncHandler(async(req,res)=>{
 
@@ -185,6 +206,9 @@ const approveStudent = asyncHandler(async(req,res)=>{
     const email = req.body.email
 
     const remarks = req.body.remarks || null
+
+    console.log("Admin ID:", adminID);
+    console.log("Student ID:", studentID);
 
     if (!toApprove || (toApprove != "approved" && toApprove != "rejected" && toApprove !== "reupload")) {
         throw new ApiError(400, "Please choose 'approve' or 'reject' or 'reupload'");
@@ -385,23 +409,27 @@ const sendmessage = asyncHandler(async(req,res)=>{
     .json(new ApiResponse(200, {contactUs: createdContactUs}, "message sent successfully"))
 })
 
-const allmessages = asyncHandler(async(req,res)=>{
-    
-    const messages = await contact.find({
-        status:false,
-    }).sort({ _id: -1 });
-    
-    if(!messages){
+const allmessages = asyncHandler(async (req, res) => {
+    try {
+      const messages = await contact.find({ status: false }).sort({ _id: -1 });
+  
+      if (messages.length === 0) {
         return res
+          .status(200)
+          .json(new ApiResponse(200, {}, "No new messages"));
+      }
+  
+      return res
         .status(200)
-        .json(new ApiResponse(200, {}, "no new messages"))
+        .json(new ApiResponse(200, messages, "Messages fetched"));
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      return res
+        .status(500)
+        .json(new ApiResponse(500, {}, "Internal server error"));
     }
-    
-    return res
-    .status(200)
-    .json(new ApiResponse(200, messages, "messages fetched"))
-})
-
+  });
+  
 const readMessage = asyncHandler(async(req,res)=>{
 
     const messageID = req.body.messageID;

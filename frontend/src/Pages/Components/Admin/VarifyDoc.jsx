@@ -48,6 +48,10 @@ function VarifyDoc() {
         getData();
     }, []);
 
+    //console.log("Secondary Image URL:", data);
+    //console.log("Higher Image URL:", data);
+    //console.log("Aadhaar Image URL:", data);
+
     return (
         <>
             <nav className="h-16 sm:h-20 md:h-24 lg:h-24  w-full bg-[#042439] flex justify-between items-center px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20">
@@ -74,18 +78,26 @@ function VarifyDoc() {
                     </div>
 
                     <div className='flex mt-10 justify-center gap-20 flex-wrap text-gray-200  font-bold'>
-                        <div className='m-5 flex flex-col gap-3'>
-                            <img src={data.studentDocs.Secondary} alt="Secondary" width={500}/>
-                            <p>10th Marksheet  <span className='text-[#8DE855]'>: {data.studentDocs.SecondaryMarks}%</span></p>
-                        </div>
-                        <div className='m-5 flex flex-col gap-3'>
-                            <img src={data.studentDocs.Higher} alt="Secondary" width={500}/>
-                            <p>12th Marksheet  <span className='text-[#8DE855]'>: {data.studentDocs.HigherMarks}%</span></p>
-                        </div>
-                        <div className='m-5 flex flex-col gap-3'>
-                            <img src={data.studentDocs.Aadhaar} alt="Secondary" width={500}/>
-                            <p>Aadhar Card </p>
-                        </div>
+                    <div className='m-5 flex flex-col gap-3'>
+    <a href={data.studentDocs.Secondary} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
+        10th Marksheet (View)
+    </a>
+    <p>10th Marksheet <span className='text-[#8DE855]'>: {data.studentDocs.SecondaryMarks}%</span></p>
+</div>
+
+<div className='m-5 flex flex-col gap-3'>
+    <a href={data.studentDocs.Higher} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
+        12th Marksheet (View)
+    </a>
+    <p>12th Marksheet <span className='text-[#8DE855]'>: {data.studentDocs.HigherMarks}%</span></p>
+</div>
+
+<div className='m-5 flex flex-col gap-3'>
+    <a href={data.studentDocs.Aadhaar} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
+        Aadhaar Card (View)
+    </a>
+</div>
+
                         <div className='flex items-end mb-10 flex-col gap-10'>
                             <textarea value={value} onChange={handleMessage} className='w-96 h-60 mt-6 text-black p-5' placeholder='Write reason for rejecting application ...'/>
                             <div className="flex items-center gap-3">
@@ -115,26 +127,40 @@ function VarifyDoc() {
                     </div>
 
                     <div className='flex mt-10 justify-center gap-20 flex-wrap text-gray-200 font-bold'>
-                        <div className='m-5 flex flex-col gap-3'>
-                            <img src={data.teacherDocs.Secondary} alt="Secondary" width={500}/>
-                            <p>10th Marksheet  <span className='text-[#8DE855]'>: {data.teacherDocs.SecondaryMarks}%</span></p>
-                        </div>
-                        <div className='m-5 flex flex-col gap-3'>
-                            <img src={data.teacherDocs.Higher} alt="Secondary" width={500}/>
-                            <p>12th Marksheet  <span className='text-[#8DE855]'>: {data.teacherDocs.HigherMarks}%</span></p>
-                        </div>
-                        <div className='m-5 flex flex-col gap-3'>
-                            <img src={data.teacherDocs.UG} alt="Secondary" width={500}/>
-                            <p>U.G. Marksheet  <span className='text-[#8DE855]'>: {data.teacherDocs.UGmarks}</span></p>
-                        </div>
-                        <div className='m-5 flex flex-col gap-3'>
-                            <img src={data.teacherDocs.PG} alt="Secondary" width={500}/>
-                            <p>P.G. Marksheet  <span className='text-[#8DE855]'>: {data.teacherDocs.PGmarks}</span></p>
-                        </div>
-                        <div className='m-5 flex flex-col gap-3'>
-                            <img src={data.teacherDocs.Aadhaar} alt="Secondary" width={500}/>
-                            <p>Aadhar Card </p>
-                        </div>
+                    <div className='m-5 flex flex-col gap-3'>
+    <a href={data.teacherDocs.Secondary} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
+        10th Marksheet (View)
+    </a>
+    <p>10th Marksheet <span className='text-[#8DE855]'>: {data.teacherDocs.SecondaryMarks}%</span></p>
+</div>
+
+<div className='m-5 flex flex-col gap-3'>
+    <a href={data.teacherDocs.Higher} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
+        12th Marksheet (View)
+    </a>
+    <p>12th Marksheet <span className='text-[#8DE855]'>: {data.teacherDocs.HigherMarks}%</span></p>
+</div>
+
+<div className='m-5 flex flex-col gap-3'>
+    <a href={data.teacherDocs.UG} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
+        U.G. Marksheet (View)
+    </a>
+    <p>U.G. Marksheet <span className='text-[#8DE855]'>: {data.teacherDocs.UGmarks}</span></p>
+</div>
+
+<div className='m-5 flex flex-col gap-3'>
+    <a href={data.teacherDocs.PG} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
+        P.G. Marksheet (View)
+    </a>
+    <p>P.G. Marksheet <span className='text-[#8DE855]'>: {data.teacherDocs.PGmarks}</span></p>
+</div>
+
+<div className='m-5 flex flex-col gap-3'>
+    <a href={data.teacherDocs.Aadhaar} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
+        Aadhaar Card (View)
+    </a>
+</div>
+
                         <div className='flex items-end mb-10 flex-col gap-10'>
                             <textarea value={value} onChange={handleMessage} className='w-96 h-60 mt-6 text-black p-5' placeholder='Write reason for rejecting application ...'/>
 

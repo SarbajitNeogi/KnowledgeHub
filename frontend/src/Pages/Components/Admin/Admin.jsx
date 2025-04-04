@@ -9,121 +9,153 @@ const Admin = () => {
   const { data } = useParams();
   const navigator = useNavigate();
 
-
   const [StudentData, setStudentData] = useState([]);
   const [TeacherData, setTeacherData] = useState([]);
-  const [adminID, setAdminID] = useState(null);
+  const [adminID, setAdminID] = useState(data);
   const [error, setErrors] = useState("");
   const [allmsg, setAllMsg] = useState(null);
   const [open, setOpen] = useState(false);
 
-
-  useEffect(()=>{
+  const token = localStorage.getItem("AccessToken");
+  useEffect(() => {
     const getAllMsg = async () => {
+      console.log(token) // Or from cookies
       try {
         const response = await fetch(`/api/admin/messages/all`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`, // Ensure token is included
           },
         });
 
         const data = await response.json();
-        setAllMsg(data.data)
+        console.log("API Response:", data); // Debug response
 
+        if (data?.statusCode === 200) {
+          setAllMsg(data.data);  // Set the data if it's available
+        } else {
+          console.log("No data found in response.");
+        }
       } catch (err) {
-        console.log(err.message);
+        console.log("Error fetching messages:", err.message);
       }
     };
     getAllMsg();
-  },[])
+  }, []);
 
-  const Approval = async(ID, type, approve)=>{
+  // Approve function for students and teachers
+  const Approval = async (adminID, ID, type, approve) => {
     try {
-      const data = {
-        Isapproved : approve
-      }
+        if (!adminID) {
+            throw new Error("Admin ID is required");
+        }
 
-      const response = await fetch(`/api/admin/${adminID}/approve/${type}/${ID}`, {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+        const token = localStorage.getItem("Accesstoken"); // Get token
+        if (!token) {
+            throw new Error("Unauthorized request: No token found");
+        }
 
-   
-      if(type == "student"){
-        setStudentData(pre => pre.filter((pre) => pre._id !== ID));
+        const data = {
+            Isapproved: approve
+        };
 
-      }else if(type == "teacher"){
-        setTeacherData(pre => pre.filter((pre) => pre._id !== ID));
-
-      }
-
-    } catch (error) {
-      setErrors(error.message);
-    }
-  }
-
-  const docDetails = async (type, ID) =>{
-    navigator(`/VarifyDoc/${type}/${adminID}/${ID}`);
-  }
-
-
-  useEffect(() => {
-    const getData = async () => {
-      try {
-        const response = await fetch(`/api/admin/${data}/approve`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+        const response = await fetch(`/api/admin/${adminID}/approve/${type}/${ID}`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}` // Add authorization header
+            },
+            body: JSON.stringify(data),
         });
 
         if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        } else {
-          const result = await response.json();
-         
-          setStudentData(result.data.studentsforApproval);
-          setTeacherData(result.data.teachersforApproval);
-          setAdminID(result.data.admin._id);
+            throw new Error(`Error approving request: ${response.statusText}`);
         }
-      } catch (err) {
-        console.log(err.message);
-      }
+
+        const result = await response.json();
+        console.log("Approval Response:", result);
+
+        // Update UI if approval is successful
+        if (type === "student") {
+            setStudentData(prev => prev.filter((student) => student._id !== ID));
+        } else if (type === "teacher") {
+            setTeacherData(prev => prev.filter((teacher) => teacher._id !== ID));
+        }
+    } catch (error) {
+        console.error("Approval Error:", error.message);
+        if (typeof setErrors === "function") {
+            setErrors(error.message);
+        }
+    }
+};
+
+
+  // Document details function
+  const docDetails = async (type, ID) => {
+    navigator(`/VarifyDoc/${type}/${adminID}/${ID}`);
+  };
+
+  // Fetch initial data for student and teacher approval
+  useEffect(() => {
+    const getData = async () => {
+        try {
+            const token = localStorage.getItem("AccessToken");
+            console.log(token) // ✅ Retrieve token from localStorage
+
+            if (!token) {
+                console.error("No access token found!");
+                return;
+            }
+
+            const response = await fetch(`/api/admin/${adminID}/approve`, {
+                method: "POST",
+                credentials: "include", // ✅ Ensures cookies are sent
+                headers: {
+                  "Authorization": `Bearer ${token}` ,// ✅ Attach the token
+                    "Content-Type": "application/json"
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch data: ${response.status}`);
+            }
+
+            const result = await response.json();
+            setStudentData(result.data.studentsforApproval || []);
+            setTeacherData(result.data.teachersforApproval || []);
+
+            console.log("Fetched Student Data:", result.data);
+            console.log("Fetched Teacher Data:", result.data.teachersforApproval);
+        } catch (err) {
+            console.error("Error fetching data:", err.message);
+        }
     };
-    getData();
-  }, []);
 
-
-
-  
-
-
-
-
-
-
+    if (adminID) {
+        getData();
+    } else {
+        console.warn("Admin ID is missing, skipping fetch");
+    }
+}, [adminID]); // ✅ Runs when adminID changes
 
 
 
   return (
     <div className="h-[100vh]">
       {/* Navbar */}
-      <nav className="h-16 sm:h-20 md:h-24 lg:h-24  w-full bg-[#042439] flex justify-between items-center px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20">
+      <nav className="h-16 sm:h-20 md:h-24 lg:h-24 w-full bg-[#042439] flex justify-between items-center px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20">
         <NavLink to='/'>
-        <div className="flex items-center gap-4">
-          <img
-            src={logo}
-            alt="logo"
-            className="w-14 sm:h-12 md:h-14 lg:h-16 xl:h-18"
-          />
-          <h1 className="text-2xl text-[#4E84C1] font-bold">
-            Shiksharthee
-          </h1>
-        </div>
+          <div className="flex items-center gap-4">
+            <img
+              src={logo}
+              alt="logo"
+              className="w-14 sm:h-12 md:h-14 lg:h-16 xl:h-18"
+            />
+            <h1 className="text-2xl text-[#4E84C1] font-bold">
+              KnowledgeHub
+            </h1>
+          </div>
         </NavLink>
         <div className="flex items-center">
           <div className="relative mr-4">
@@ -138,113 +170,70 @@ const Admin = () => {
 
       {/* Main Section */}
       <div className="p-4 sm:p-8 md:p-12 lg:p-10">
-        <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-2xl border-b-2 font-semibold text-white border-white">
-          All New Request
-        </h1>
-
-        <div onClick={()=> setOpen(prev => !prev)} className=" absolute right-10 top-[6.5rem] text-center cursor-pointer">
-            <h4 className="text-white bg-green-800 p-4 w-32">Messages</h4>
+      <h1 className="text-3xl font-semibold border-b-2 border-white pb-2 text-white">All New Requests</h1>
+      <div className="flex gap-6 mt-6 justify-end">
+        <div onClick={() => setOpen(prev => !prev)} className="cursor-pointer bg-green-800 hover:bg-green-700 transition p-4 w-36 text-center rounded-md">
+          Messages
         </div>
-        
-        <div onClick={()=>navigator(`/admin/course/${data}`)} className=" absolute right-52 top-[6.5rem] text-center cursor-pointer">
-            <h4 className="text-white bg-blue-800 p-4 w-44">Course Requests</h4>
+        <div onClick={() => navigator(`/admin/course/${data}`)} className="cursor-pointer bg-blue-800 hover:bg-blue-700 transition p-4 w-48 text-center rounded-md">
+          Course Requests
         </div>
-
-        {open && (
-          <div className="mt-3 w-[30rem] absolute right-10 bg-gray-700 text-gray-100 p-5">
-            {allmsg.map((msg,index) => (
-              <div key={index} className="bg-gray-600 mb-5 rounded-sm p-2">
-                <p className="text-black">Name : <span className="text-white">{msg.name}</span></p>
-                <p className=" text-light-blue-600"><span className="text-black">Email : </span>{msg.email}</p>
-                <p><span className="text-black">Message : </span>{msg.message}</p>
+      </div>
+      {open && (
+        <div className="mt-6 w-full sm:w-[30rem] bg-gray-800 p-5 rounded-md shadow-md">
+          {allmsg.length > 0 ? (
+            allmsg.map((msg, index) => (
+              <div key={index} className="bg-gray-700 mb-4 p-4 rounded-md">
+                <p className="text-gray-300 font-semibold">Name: <span className="text-white">{msg.name}</span></p>
+                <p className="text-light-blue-500 font-semibold">Email: <span className="text-white">{msg.email}</span></p>
+                <p className="text-gray-300">Message: <span className="text-white">{msg.message}</span></p>
               </div>
-            ))}
+            ))
+          ) : (
+            <p className="text-gray-400">No messages available</p>
+          )}
+        </div>
+      )}
+    </div>
 
-          </div>
+    <div className="flex flex-col md:flex-row justify-center gap-16 p-10">
+      <div className="w-full md:w-1/2">
+        <h4 className="text-white bg-gray-900 p-4 text-center rounded-md">Student Requests</h4>
+        {StudentData.length > 0 ? (
+          StudentData.map((student) => student.Isapproved === "pending" && (
+            <div key={student._id} onClick={() => docDetails("student", student._id)} className="mt-6 p-6 bg-gray-800 hover:bg-gray-700 transition rounded-md shadow-md cursor-pointer flex flex-col gap-4">
+              <h1 className="text-xl font-semibold text-white">{student.Firstname} {student.Lastname}</h1>
+              <p className="text-sm text-gray-300">Status: <span>{student.Isapproved}</span></p>
+              <div className="flex gap-4">
+                <button onClick={() => Approval(student._id, "student", "approved")} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md w-full">Approve</button>
+                <button onClick={() => Approval(student._id, "student", "rejected")} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md w-full">Reject</button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-400 text-center mt-4">No pending student requests</p>
         )}
-</div>
-       
-      
-      <div className="flex items-start justify-center gap-20">
-        <div className="rounded-md">
-          <h4 className="text-white bg-blue-gray-900 p-4 w-40">Student Request</h4>
-          {
-            StudentData.length > 0 ? StudentData.map((student) => (
-              student.Isapproved === "pending" && (
-                <div
-                  key={student._id}
-                  onClick={() => docDetails("student", student._id)}
-                  className="flex justify-around items-center mt-8 p-8 bg-blue-gray-600 rounded-md cursor-pointer"
-                >
-                  <h1 className="text-[24px] text-1xl text-white mr-3">
-                    {student.Firstname + " " + student.Lastname}
-                  </h1>
-                  <p>Status: <span>{student.Isapproved}</span></p>
-                </div>
-              )
-            )) : null
-          }
-        </div>
-
-        <div className="rounded-md">
-        <h4 className="text-white bg-blue-gray-900 p-4 w-40">Teacher Request</h4>
-        {
-            TeacherData.length > 0 ? TeacherData.map((teacher) => (
-              teacher.Isapproved === "pending" && (
-                <div
-                  key={teacher._id}
-                  onClick={() => docDetails("teacher", teacher._id)}
-                  className="flex justify-around items-center mt-8 p-8 bg-blue-gray-600 rounded-md cursor-pointer"
-                >
-                  <h1 className="text-[24px] text-1xl text-white mr-3">
-                    {teacher.Firstname + " " + teacher.Lastname}
-                  </h1>
-                  <p>Status: <span>{teacher.Isapproved}</span></p>
-                </div>
-              )
-            )) : null
-          }
-        </div>
-        
-        <div className="rounded-md">
-        <h4 className="text-white bg-red-500 p-4 w-40">Rejected Request</h4>
-          {
-            TeacherData.length > 0 ? TeacherData.map((teacher) => (
-              teacher.Isapproved === "rejected" && (
-                <div
-                  key={teacher._id}
-                  onClick={() => docDetails("teacher", teacher._id)}
-                  className="flex justify-around items-center mt-8 p-8 bg-blue-gray-600 rounded-md cursor-pointer"
-                >
-                  <h1 className="text-[24px] text-1xl text-white mr-3">
-                    {teacher.Firstname + " " + teacher.Lastname}
-                  </h1>
-                  <p>Msg: <span>{teacher.Remarks}</span></p>
-                </div>
-              )
-            )) : null
-          }
-          {
-            StudentData.length > 0 ? StudentData.map((student) => (
-              student.Isapproved === "rejected" && (
-                <div
-                  key={student._id}
-                  onClick={() => docDetails("student", student._id)}
-                  className="flex justify-around items-center mt-8 p-8 bg-blue-gray-600 rounded-md cursor-pointer"
-                >
-                  <h1 className="text-[24px] text-1xl text-white mr-3">
-                    {student.Firstname + " " + student.Lastname}
-                  </h1>
-                  <p>Msg: <span>{student.Remarks}</span></p>
-                </div>
-              )
-            )) : null
-          }
-        </div>
-        
       </div>
 
+      <div className="w-full md:w-1/2">
+        <h4 className="text-white bg-gray-900 p-4 text-center rounded-md">Teacher Requests</h4>
+        {TeacherData.length > 0 ? (
+          TeacherData.map((teacher) => teacher.Isapproved === "pending" && (
+            <div key={teacher._id} onClick={() => docDetails("teacher", teacher._id)} className="mt-6 p-6 bg-gray-800 hover:bg-gray-700 transition rounded-md shadow-md cursor-pointer flex flex-col gap-4">
+              <h1 className="text-xl font-semibold text-white">{teacher.Firstname} {teacher.Lastname}</h1>
+              <p className="text-sm text-gray-300">Status: <span>{teacher.Isapproved}</span></p>
+              <div className="flex gap-4">
+                <button onClick={() => Approval(teacher._id, "teacher", "approved")} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md w-full">Approve</button>
+                <button onClick={() => Approval(teacher._id, "teacher", "rejected")} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md w-full">Reject</button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-400 text-center mt-4">No pending teacher requests</p>
+        )}
+      </div>
     </div>
+  </div>
   );
 };
 
