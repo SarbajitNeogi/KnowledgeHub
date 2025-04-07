@@ -340,9 +340,9 @@ const ForgetPassword=asyncHandler(async(req,res)=>{
     <p>We have received a request to reset your password. To proceed, please click on the following link: <a href="${resetToken}" target="_blank">reset your password</a>.</p>
     <p>If the link does not work for any reason, you can copy and paste the following URL into your browser's address bar:</p>
     <p>${resetToken}</p>
-    <p>Thank you for being a valued member of the Shiksharthee community. If you have any questions or need further assistance, please do not hesitate to contact our support team.</p>
+    <p>Thank you for being a valued member of the KnowledgeHub community. If you have any questions or need further assistance, please do not hesitate to contact our support team.</p>
     <p>Best regards,</p>
-    <p>The Shiksharthee Team</p>`
+    <p>The KnowledgeHub Team</p>`
  
     try{
      
